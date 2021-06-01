@@ -1,0 +1,3 @@
+[submodule "docker-http-https-echo"]
+	path = docker-http-https-echo
+	url = git@github.com:mendhak/docker-http-https-echo.git

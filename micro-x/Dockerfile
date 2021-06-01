@@ -1,0 +1,22 @@
+FROM golang:1.16.4-alpine3.13 AS build-env
+
+WORKDIR /go/src/app
+COPY . .
+
+RUN go build main.go
+
+# final stage
+FROM alpine:3.13
+ARG GIVEN_NAME
+ARG GIVEN_PORT
+
+ENV PORT=$GIVEN_PORT
+
+WORKDIR /app
+COPY --from=build-env /go/src/app/main /app/
+
+RUN apk update && apk add curl
+
+ENTRYPOINT ./main
+
+EXPOSE $GIVEN_PORT
