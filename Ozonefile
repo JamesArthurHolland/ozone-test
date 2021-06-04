@@ -11,9 +11,10 @@ build_vars:
     SECRET_FILE: ~/ozone/secret.yml
     SCRIPT_DIR: ./script
     HELM_CHART: helm
-    HELM_VALUES_FILE: TODO
+    HELM_VALUES_FILE: TODO...
     DOCKER_REGISTRY: registry.local
     MICRO_X_DIR: ./micro-x
+    HEALTH_CHECKER_DIR: ./health-checker
 
 environments:
     - name: base
@@ -24,11 +25,11 @@ environments:
     - name: local
       include:
         - name: base
-        - name: env/from_env_file
-          type: builtin
-          with_vars:
-            - name: ENV_FILE
-              value: ./.env
+#        - name: env/from_env_file
+#          type: builtin
+#          with_vars:
+#            - name: ENV_FILE
+#              value: ./.env
 
     - name: git64
       include:
@@ -54,7 +55,6 @@ environments:
 builds:
   - name: micro-x
     service: "{{SERVICE}}"
-    dir: "{{MICRO_X_DIR}}"
     context_steps:
       - context: local
         with_env:
@@ -71,21 +71,52 @@ builds:
           - type: builtin
             name: pushDockerImage
 
+#  - name: b-health-checker
+#    service: health-checker
+#    dir: ./health-checker
+#    context_steps:
+#      - context: local
+#        with_env:
+#          - "{{CONTEXT}}"
+#        steps:
+#          - type: builtin
+#            name: buildDockerImage
+#            with_vars:
+#              FULL_TAG: health-checker:latest
+#      - context: local-k8s|k8s-ns
+#        with_env:
+#          - "{{CONTEXT}}"
+#        steps:
+#          - type: builtin
+#            name: buildDockerImage
+#            with_vars:
+#              FULL_TAG: health-checker:latest
+#          - type: builtin
+#            name: pushDockerImage
+
+  - name: b-health-checker
+    dir: "{{HEALTH_CHECKER_DIR}}"
+    service: health-checker
+    depends_on:
+      - name: micro-x
+        with_vars:
+          FULL_TAG: health-checker:latest
+
   - name: b-micro-a
     service: micro-a
+    dir: "{{MICRO_X_DIR}}"
     depends_on:
       - name: micro-x
         with_vars:
           FULL_TAG: micro-a
-          BUILD_ARGS: "--build-arg GIVEN_PORT=8081"
 
   - name: b-micro-b
     service: micro-b
+    dir: "{{MICRO_X_DIR}}"
     depends_on:
       - name: micro-x
         with_vars:
           FULL_TAG: micro-b
-          BUILD_ARGS: "--build-arg GIVEN_PORT=8082"
 
   - name: b-echo
     service: echo
@@ -101,18 +132,6 @@ builds:
             name: pushDockerImage
 
 deploys:
-#    - name: d-micro-a
-#      service: a
-#      #with_env:
-#      #  - $ENV
-#      context_steps:
-#        - context: local
-#          with_env:
-#            - local
-#          steps:
-#            - type: builtin
-#              name: executable
-
   - name: d-micro-x
     context_steps:
       - context: local
@@ -123,23 +142,39 @@ deploys:
             name: runDockerImage
             with_vars:
               NETWORK: "{{PROJECT}}"
-              PORT: 8081
+
+  - name: d-health-checker
+    service: health-checker
+    dir: "{{HEALTH_CHECKER_DIR}}"
+    context_steps:
+      - context: local
+        with_env:
+          - "{{CONTEXT}}"
+        steps:
+          - type: builtin
+            name: runDockerImage
+            with_vars:
+              FULL_TAG: health-checker:latest
+              NETWORK: "{{PROJECT}}"
+              PORT: "{{HEALTH_CHECKER_PORT}}"
 
   - name: d-micro-a
     service: micro-a
+    dir: "{{MICRO_X_DIR}}"
     depends_on:
       - name: d-micro-x
         with_vars:
           FULL_TAG: micro-a:latest
-          PORT: 8081
+          PORT: "{{MICRO_A_PORT}}"
 
   - name: d-micro-b
     service: micro-b
+    dir: "{{MICRO_X_DIR}}"
     depends_on:
       - name: d-micro-x
         with_vars:
           FULL_TAG: micro-b:latest
-          PORT: 8082
+          PORT: "{{MICRO_B_PORT}}"
 
   - name: redeploy_helm_chart
     service: a
@@ -176,10 +211,13 @@ deploys:
     with_env:
       - "{{CONTEXT}}"
     depends_on:
+      - name: b-health-checker
       - name: b-micro-a
       - name: b-micro-b
       - name: d-micro-a
       - name: d-micro-b
+      - name: d-health-checker
+
 
 
 utilties:
