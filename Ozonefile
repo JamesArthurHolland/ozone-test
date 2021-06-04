@@ -8,7 +8,7 @@ context:
       - ns-k8s
 build_vars:
     ENV: local
-    SECRET_FILE: ~/ozone/secret.yml
+    SECRET_FILE: ./secret.yml
     SCRIPT_DIR: ./script
     HELM_CHART: helm
     HELM_VALUES_FILE: TODO...
