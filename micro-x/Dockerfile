@@ -1,7 +1,9 @@
 FROM golang:1.16.4-alpine3.13 AS build-env
 
+ARG DIR
+
 WORKDIR /go/src/app
-COPY . .
+COPY $DIR .
 
 RUN go build main.go
 

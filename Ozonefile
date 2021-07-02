@@ -101,6 +101,8 @@ builds:
       - name: micro-x
         with_vars:
           FULL_TAG: health-checker:latest
+          DOCKERFILE: "./health-checker/Dockerfile"
+
 
   - name: b-micro-a
     service: micro-a
@@ -109,6 +111,7 @@ builds:
       - name: micro-x
         with_vars:
           FULL_TAG: micro-a
+          DOCKERFILE: "./micro-x/Dockerfile"
 
   - name: b-micro-b
     service: micro-b
@@ -117,6 +120,7 @@ builds:
       - name: micro-x
         with_vars:
           FULL_TAG: micro-b
+          DOCKERFILE: "./micro-x/Dockerfile"
 
   - name: b-echo
     service: echo
@@ -141,7 +145,7 @@ deploys:
           - type: builtin
             name: runDockerImage
             with_vars:
-              NETWORK: "{{PROJECT}}"
+              NETWORK: "host"
 
   - name: d-health-checker
     service: health-checker
@@ -211,12 +215,10 @@ deploys:
     with_env:
       - "{{CONTEXT}}"
     depends_on:
-      - name: b-health-checker
       - name: b-micro-a
       - name: b-micro-b
       - name: d-micro-a
       - name: d-micro-b
-      - name: d-health-checker
 
 
 
