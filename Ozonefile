@@ -145,7 +145,7 @@ deploys:
           - type: builtin
             name: runDockerImage
             with_vars:
-              NETWORK: "host"
+              NETWORK: "{{PROJECT}}"
 
   - name: d-health-checker
     service: health-checker
@@ -164,6 +164,8 @@ deploys:
 
   - name: d-micro-a
     service: micro-a
+    with_env:
+      - "{{CONTEXT}}"
     dir: "{{MICRO_X_DIR}}"
     depends_on:
       - name: d-micro-x
