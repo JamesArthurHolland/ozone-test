@@ -4,233 +4,38 @@ context:
     default: local
     list:
       - local
-      - local-k8s
-      - ns-k8s
 build_vars:
-    ENV: local
-    SECRET_FILE: ./secret.yml
-    SCRIPT_DIR: ./script
-    HELM_CHART: helm
-    HELM_VALUES_FILE: TODO...
-    DOCKER_REGISTRY: registry.local
-    MICRO_X_DIR: ./micro-x
-    HEALTH_CHECKER_DIR: ./health-checker
-
-environments:
-    - name: base
-      include:
-        - name: env/from_k8s_secret
-          type: builtin
-
-    - name: local
-      include:
-        - name: base
-#        - name: env/from_env_file
-#          type: builtin
-#          with_vars:
-#            - name: ENV_FILE
-#              value: ./.env
-
-    - name: git64
-      include:
-        - name: env/docker_submodule_git_hash
-          type: builtin
-
-    #- name: k8s-local-solo
-
-    - name: k8s-ns
-      include:
-        - name: base
-        - name: git64
-          type: builtin
-
-    - name: local-k8s
-      include:
-        - name: base
-
-    - name: micro-a
-      with_vars:
-        FULL_TAG: micro-a
+    NETWORK: "{{PROJECT}}"
+    MICRO_A_DIR: ./micro-a
+    MICRO_A_SERVICE: "micro-a"
 
 builds:
-  - name: micro-x
-    service: "{{SERVICE}}"
+  - name: b-micro-a
+    dir: "{{MICRO_A_DIR}}"
+    service: "{{MICRO_A_SERVICE}}"
     context_steps:
       - context: local
-        with_env:
-          - "{{CONTEXT}}"
         steps:
           - type: builtin
             name: buildDockerImage
-      - context: local-k8s|k8s-ns
-        with_env:
-          - "{{CONTEXT}}"
-        steps:
-          - type: builtin
-            name: buildDockerImage
-          - type: builtin
-            name: pushDockerImage
-
-#  - name: b-health-checker
-#    service: health-checker
-#    dir: ./health-checker
-#    context_steps:
-#      - context: local
-#        with_env:
-#          - "{{CONTEXT}}"
-#        steps:
-#          - type: builtin
-#            name: buildDockerImage
-#            with_vars:
-#              FULL_TAG: health-checker:latest
-#      - context: local-k8s|k8s-ns
-#        with_env:
-#          - "{{CONTEXT}}"
-#        steps:
-#          - type: builtin
-#            name: buildDockerImage
-#            with_vars:
-#              FULL_TAG: health-checker:latest
-#          - type: builtin
-#            name: pushDockerImage
-
-  - name: b-health-checker
-    dir: "{{HEALTH_CHECKER_DIR}}"
-    service: health-checker
-    depends_on:
-      - name: micro-x
-        with_vars:
-          FULL_TAG: health-checker:latest
-          DOCKERFILE: "./health-checker/Dockerfile"
-
-
-  - name: b-micro-a
-    service: micro-a
-    dir: "{{MICRO_X_DIR}}"
-    depends_on:
-      - name: micro-x
-        with_vars:
-          FULL_TAG: micro-a
-          DOCKERFILE: "./micro-x/Dockerfile"
-
-  - name: b-micro-b
-    service: micro-b
-    dir: "{{MICRO_X_DIR}}"
-    depends_on:
-      - name: micro-x
-        with_vars:
-          FULL_TAG: micro-b
-          DOCKERFILE: "./micro-x/Dockerfile"
-
-  - name: b-echo
-    service: echo
-    dir: ./docker-http-https-echo
-    context_steps:
-      - context: k8s
-        with_env:
-         - k8s-ns
-        steps:
-          - type: builtin
-            name: buildDockerImage
-          - type: builtin
-            name: pushDockerImage
+            with_vars:
+              DOCKERFILE: "./micro-a/Dockerfile"
+              FULL_TAG: micro-a:latest
 
 deploys:
-  - name: d-micro-x
-    context_steps:
-      - context: local
-        with_env:
-          - local
-        steps:
-          - type: builtin
-            name: runDockerImage
-            with_vars:
-              NETWORK: "{{PROJECT}}"
-
-  - name: d-health-checker
-    service: health-checker
-    dir: "{{HEALTH_CHECKER_DIR}}"
-    context_steps:
-      - context: local
-        with_env:
-          - "{{CONTEXT}}"
-        steps:
-          - type: builtin
-            name: runDockerImage
-            with_vars:
-              FULL_TAG: health-checker:latest
-              NETWORK: "{{PROJECT}}"
-              PORT: "{{HEALTH_CHECKER_PORT}}"
-
   - name: d-micro-a
-    service: micro-a
-    with_env:
-      - "{{CONTEXT}}"
-    dir: "{{MICRO_X_DIR}}"
-    depends_on:
-      - name: d-micro-x
-        with_vars:
-          FULL_TAG: micro-a:latest
-          PORT: "{{MICRO_A_PORT}}"
-
-  - name: d-micro-b
-    service: micro-b
-    dir: "{{MICRO_X_DIR}}"
-    depends_on:
-      - name: d-micro-x
-        with_vars:
-          FULL_TAG: micro-b:latest
-          PORT: "{{MICRO_B_PORT}}"
-
-  - name: redeploy_helm_chart
-    service: a
+    service: "{{MICRO_A_SERVICE}}"
     context_steps:
-      - context: local-k8s
-        with_env:
-          - local
-        steps:
-          - type: builtin
-            name: helm
-            with_vars:
-              INSTALL_NAME: echo
-              CHART_DIR: helm
-              K8S_SERVICE: echo
-              DOMAIN: "test.local"
-              FULL_TAG: "{{DOCKER_REGISTRY}}/echo:cmVmcy9oZWFkcy9tYXN0ZXI"
-              CONTAINER_PORT: 8080
-              SERVICE_PORT: 80
-              NAMESPACE: test
-
-  - name: d-postgres
-    service: postgres
-    context_steps:
-      - context: local|local-k8s
-        with_env:
-          - "{{CONTEXT}}"
+      - context: local
         steps:
           - type: builtin
             name: runDockerImage
             with_vars:
-              FULL_TAG: "postgres"
+              NETWORK: "{{NETWORK}}"
+              FULL_TAG: micro-a:latest
+              PORT: 8081
 
-  - name: build-all
-    with_env:
-      - "{{CONTEXT}}"
+  - name: all
     depends_on:
       - name: b-micro-a
-      - name: b-micro-b
       - name: d-micro-a
-      - name: d-micro-b
-
-
-
-utilties:
-    - name: change_namespace
-      using: k8s/change_namespace
-      with_env:
-        - git
-      with_adaptations:
-        - source: GIT_BRANCH_64
-          target: SUBDOMAIN
-
-    - name: get_oauth_token
