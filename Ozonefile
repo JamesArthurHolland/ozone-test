@@ -5,7 +5,7 @@ context:
     list:
       - local
 build_vars:
-    NETWORK: "{{PROJECT}}"
+    NETWORK: "host"
     MICRO_A_DIR: ./micro-a
     MICRO_A_SERVICE: "micro-a"
 
