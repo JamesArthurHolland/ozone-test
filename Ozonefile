@@ -4,10 +4,31 @@ context:
     default: local
     list:
       - local
+      - local-k8s
+      - ns-k8s
 build_vars:
-    NETWORK: "host"
+    NETWORK: "{{PROJECT}}"
     MICRO_A_DIR: ./micro-a
+    MICRO_X_DIR: ./micro-x
     MICRO_A_SERVICE: "micro-a"
+    SECRET_FILE: ./secret.yml
+    HELM_CHART: helm
+    HELM_VALUES_FILE: TODO...
+    DOCKER_REGISTRY: registry.local
+    MICRO_X_DIR: ./micro-x
+    HEALTH_CHECKER_DIR: ./health-checker
+
+environments:
+  - name: local
+    include:
+      - name: env/from_k8s_secret
+        type: builtin
+
+  - name: k8s-ns
+    include:
+      - name: base
+      - name: git64
+        type: builtin
 
 builds:
   - name: b-micro-a
@@ -22,7 +43,45 @@ builds:
               DOCKERFILE: "./micro-a/Dockerfile"
               FULL_TAG: micro-a:latest
 
+  - name: micro-x
+    service: "{{SERVICE}}"
+    context_steps:
+      - context: local
+        with_env:
+          - "{{CONTEXT}}"
+        steps:
+          - type: builtin
+            name: buildDockerImage
+      - context: local-k8s|k8s-ns
+        with_env:
+          - "{{CONTEXT}}"
+        steps:
+          - type: builtin
+            name: buildDockerImage
+          - type: builtin
+            name: pushDockerImage
+
+  - name: b-micro-b
+    service: micro-b
+    dir: "{{MICRO_X_DIR}}"
+    depends_on:
+      - name: micro-x
+        with_vars:
+          FULL_TAG: micro-b:latest
+          DOCKERFILE: "./micro-x/Dockerfile"
+
 deploys:
+  - name: d-micro-x
+    context_steps:
+      - context: local
+        with_env:
+          - "{{CONTEXT}}"
+        steps:
+          - type: builtin
+            name: runDockerImage
+            with_vars:
+              NETWORK: "{{PROJECT}}"
+
   - name: d-micro-a
     service: "{{MICRO_A_SERVICE}}"
     context_steps:
@@ -35,7 +94,20 @@ deploys:
               FULL_TAG: micro-a:latest
               PORT: 8081
 
+  - name: d-micro-b
+    service: micro-b
+    dir: "{{MICRO_X_DIR}}"
+    with_env:
+      - "{{CONTEXT}}"
+    depends_on:
+      - name: d-micro-x
+        with_vars:
+          FULL_TAG: micro-b:latest
+          PORT: "{{MICRO_B_PORT}}"
+
   - name: all
     depends_on:
       - name: b-micro-a
+      - name: b-micro-b
       - name: d-micro-a
+      - name: d-micro-b
