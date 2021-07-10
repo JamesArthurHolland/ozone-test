@@ -1,49 +1,94 @@
 ---
 project: ozone-test
 context:
-    default: local
+    default: ns-k8s
     list:
       - local
       - local-k8s
       - ns-k8s
 build_vars:
     NETWORK: "{{PROJECT}}"
+    DOMAIN: "test.local"
     MICRO_A_DIR: ./micro-a
     MICRO_X_DIR: ./micro-x
     MICRO_A_SERVICE: "micro-a"
     SECRET_FILE: ./secret.yml
     HELM_CHART: helm
-    HELM_VALUES_FILE: TODO...
     DOCKER_REGISTRY: registry.local
     MICRO_X_DIR: ./micro-x
     HEALTH_CHECKER_DIR: ./health-checker
+    HEALTH_CHECKER_SERVICE: health-checker
 
 environments:
-  - name: local
+  - name: base_secret
     include:
       - name: env/from_k8s_secret
         type: builtin
 
-  - name: k8s-ns
+  - name: local
     include:
-      - name: base
-      - name: git64
+      - name: base_secret
+
+  - name: local-k8s
+    include:
+      - name: local
+    with_vars:
+      NAMESPACE: test
+
+  - name: helm-base
+    with_vars:
+      INSTALL_NAME: "{{SERVICE}}"
+      FULL_TAG: "{{DOCKER_REGISTRY}}/{{SERVICE}}:latest"
+      CHART_DIR: ./helm
+      K8S_SERVICE: "{{SERVICE}}"
+      DOMAIN: "{{DOMAIN}}"
+      CONTAINER_PORT: "{{CONTAINER_PORT}}"
+      SERVICE_PORT: 80
+
+  - name: ns
+    include:
+      - name: env/git_directory_branch_hash
+        type: builtin
+
+  - name: ns-k8s
+    include:
+      - name: local
+      - name: ns
+      - name: env/git_submodule_commit_hash
         type: builtin
 
 builds:
-  - name: b-micro-a
-    dir: "{{MICRO_A_DIR}}"
-    service: "{{MICRO_A_SERVICE}}"
+  - name: applyK8sSecret
     context_steps:
-      - context: local
+      - context: local-k8s|ns-k8s
+        with_env:
+          - ns
         steps:
           - type: builtin
-            name: buildDockerImage
+            name: bashScript
             with_vars:
-              DOCKERFILE: "./micro-a/Dockerfile"
-              FULL_TAG: micro-a:latest
+              SCRIPT: script/applySecret.sh
 
-  - name: micro-x
+  - name: createNamespace
+    context_steps:
+      - context: local-k8s
+        with_env:
+          - local-k8s
+        steps:
+          - type: builtin
+            name: bashScript
+            with_vars:
+              SCRIPT: script/createNamespace.sh
+      - context: ns-k8s
+        with_env:
+          - ns
+        steps:
+          - type: builtin
+            name: bashScript
+            with_vars:
+              SCRIPT: script/createNamespace.sh
+
+  - name: b-micro-x
     service: "{{SERVICE}}"
     context_steps:
       - context: local
@@ -52,7 +97,7 @@ builds:
         steps:
           - type: builtin
             name: buildDockerImage
-      - context: local-k8s|k8s-ns
+      - context: local-k8s|ns-k8s
         with_env:
           - "{{CONTEXT}}"
         steps:
@@ -61,14 +106,32 @@ builds:
           - type: builtin
             name: pushDockerImage
 
+  - name: b-micro-a
+    service: micro-a
+    dir: "{{MICRO_A_DIR}}"
+    depends_on:
+      - name: b-micro-x
+        with_vars:
+          FULL_TAG: "{{DOCKER_REGISTRY}}/micro-a:latest"
+          DOCKERFILE: "./{{MICRO_A_DIR}}/Dockerfile"
+
+  - name: b-health-checker
+    service: health-checker
+    dir: "{{HEALTH_CHECKER_DIR}}"
+    depends_on:
+      - name: b-micro-x
+        with_vars:
+          FULL_TAG: "{{DOCKER_REGISTRY}}/health-checker:latest"
+          DOCKERFILE: "./{{HEALTH_CHECKER_DIR}}/Dockerfile"
+
   - name: b-micro-b
     service: micro-b
     dir: "{{MICRO_X_DIR}}"
     depends_on:
-      - name: micro-x
+      - name: b-micro-x
         with_vars:
-          FULL_TAG: micro-b:latest
-          DOCKERFILE: "./micro-x/Dockerfile"
+          FULL_TAG: "{{DOCKER_REGISTRY}}/micro-b:latest"
+          DOCKERFILE: "./{{MICRO_X_DIR}}/Dockerfile"
 
 deploys:
   - name: d-micro-x
@@ -81,18 +144,37 @@ deploys:
             name: runDockerImage
             with_vars:
               NETWORK: "{{PROJECT}}"
-
-  - name: d-micro-a
-    service: "{{MICRO_A_SERVICE}}"
-    context_steps:
-      - context: local
+      - context: local-k8s|ns-k8s
+        with_env:
+          - helm-base
+          - "{{CONTEXT}}"
         steps:
           - type: builtin
-            name: runDockerImage
-            with_vars:
-              NETWORK: "{{NETWORK}}"
-              FULL_TAG: micro-a:latest
-              PORT: 8081
+            name: helm
+
+
+  - name: d-health-checker
+    service: "{{HEALTH_CHECKER_SERVICE}}"
+    dir: "{{HEALTH_CHECKER_DIR}}"
+    with_env:
+      - "{{CONTEXT}}"
+    depends_on:
+      - name: d-micro-x
+        with_vars:
+          FULL_TAG: "{{DOCKER_REGISTRY}}/{{HEALTH_CHECKER_SERVICE}}:latest"
+          VALUES_FILE: "values/health-checker-values.yaml"
+          CONTAINER_PORT: "{{HEALTH_CHECKER_PORT}}"
+
+  - name: d-micro-a
+    dir: "{{MICRO_A_DIR}}"
+    service: "{{MICRO_A_SERVICE}}"
+    with_env:
+      - base_secret
+    depends_on:
+      - name: d-micro-x
+        with_vars:
+          VALUES_FILE: "values/micro-a-values.yaml"
+          CONTAINER_PORT: "{{MICRO_A_PORT}}"
 
   - name: d-micro-b
     service: micro-b
@@ -102,12 +184,17 @@ deploys:
     depends_on:
       - name: d-micro-x
         with_vars:
-          FULL_TAG: micro-b:latest
-          PORT: "{{MICRO_B_PORT}}"
+          FULL_TAG: "{{DOCKER_REGISTRY}}/micro-b:latest"
+          CONTAINER_PORT: "{{MICRO_B_PORT}}"
+          VALUES_FILE: "values/micro-b-values.yaml"
 
   - name: all
     depends_on:
+      - name: createNamespace
+      - name: applyK8sSecret
       - name: b-micro-a
       - name: b-micro-b
+      - name: b-health-checker
       - name: d-micro-a
       - name: d-micro-b
+      - name: d-health-checker
