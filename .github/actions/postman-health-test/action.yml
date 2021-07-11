@@ -1,0 +1,7 @@
+name: 'Run postman health tests'
+runs:
+  using: "composite"
+  steps:
+    - name: "Run postman tests."
+      shell: bash
+      run: cd $GITHUB_WORKSPACE && ./script/runPostmanTests.sh $SUBDOMAIN $DOMAIN

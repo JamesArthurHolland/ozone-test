@@ -1,0 +1,58 @@
+name: Pull Request Closed/Merged
+# This workflow is triggered on pushes to the repository.
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  merge_pr:
+    name: Pull request merged
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+      - name: "Make kube directory"
+        shell: bash
+        run: mkdir ~/.kube; mkdir ~/webshrinker
+      - name: "Setup kubectl config for auth"
+        shell: bash
+        run: echo $KUBECTL_CONFIG_BASE64 | base64 --decode > ~/.kube/config
+      - name: Get base64 subdomain from branch name
+        id: get_subdomain
+        run:
+          echo "##[set-output name=hash;]$(cd $GITHUB_WORKSPACE && ./projects/script-common/convertBase64URL.sh ${{ github.head_ref }})"
+      - name: "Teardown namespace."
+        run: cd $GITHUB_WORKSPACE && ./projects/script-common/teardownNamespace.sh "$NAMESPACE"
+        env:
+          NAMESPACE: "${{ steps.get_subdomain.outputs.hash }}"
+    env:
+      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64_STAGING }}
+  close_pr_without_merge:
+    name: Pull request closed without merge
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+      - name: "Make kube directory"
+        shell: bash
+        run: mkdir ~/.kube; mkdir ~/webshrinker
+      - name: "Setup kubectl config for auth"
+        shell: bash
+        run: echo $KUBECTL_CONFIG_BASE64 | base64 --decode > ~/.kube/config
+      - name: Get base64 subdomain from branch name
+        id: get_subdomain
+        run:
+          echo "##[set-output name=hash;]$(cd $GITHUB_WORKSPACE && ./projects/script-common/convertBase64URL.sh ${{ github.head_ref }})"
+      - name: "Teardown namespace."
+        run: cd $GITHUB_WORKSPACE && ./projects/script-common/teardownNamespace.sh "$NAMESPACE"
+        env:
+          NAMESPACE: "${{ steps.get_subdomain.outputs.hash }}"
+
+    env:
+      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64_STAGING }}

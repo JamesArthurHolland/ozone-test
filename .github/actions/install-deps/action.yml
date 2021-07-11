@@ -1,0 +1,39 @@
+name: 'Install deps'
+description: 'Installs docker, kubectl, npm, newman'
+runs:
+  using: "composite"
+  steps:
+    - name: "Fix GPG repo"
+      shell: bash
+      run: sudo add-apt-repository ppa:webupd8team/y-ppa-manager && sudo apt-get --allow-releaseinfo-change update -y && sudo apt-get install y-ppa-manager -y
+    - name: "Add kubectl repo"
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2 &&
+        curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+    - name: "Install docker GPG"
+      shell: bash
+      run: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    - name: "Install docker repo"
+      shell: bash
+      run: sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+    - name: "Install docker"
+      shell: bash
+      run: sudo apt-get install docker-ce docker-ce-cli containerd.io
+    - name: "Install kubectl"
+      shell: bash
+      run: echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list &&
+        sudo apt-get update &&
+        sudo apt-get install -y kubectl
+    - name: "Install npm"
+      shell: bash
+      run: sudo apt install -y nodejs-dev node-gyp libssl1.0-dev npm
+    - name: "Install newman"
+      shell: bash
+      run: sudo npm install -g newman
+#    - name: "Python deps"
+#      shell: bash
+#      run: |
+#        curl https://bootstrap.pypa.io/get-pip.py | python3
+#        python3 -m pip install --upgrade pip
+#        python3 -m pip install requests -i https://pypi.python.org/simple/
+#        python3 -m pip install -U PyYAML

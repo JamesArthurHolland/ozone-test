@@ -7,14 +7,14 @@ context:
       - local-k8s
       - ns-k8s
 build_vars:
-    NETWORK: "{{PROJECT}}"
-    DOMAIN: "test.local"
+    NETWORK: '{{PROJECT}}'
+    DOMAIN: '{{DOMAIN | default_if_none:"test.local"}}'
+    DOCKER_REGISTRY: '{{DOCKER_REGISTRY | default_if_none:"registry.local"}}'
     MICRO_A_DIR: ./micro-a
     MICRO_X_DIR: ./micro-x
-    MICRO_A_SERVICE: "micro-a"
+    MICRO_A_SERVICE: micro-a
     SECRET_FILE: ./secret.yml
     HELM_CHART: helm
-    DOCKER_REGISTRY: registry.local
     MICRO_X_DIR: ./micro-x
     HEALTH_CHECKER_DIR: ./health-checker
     HEALTH_CHECKER_SERVICE: health-checker
@@ -49,6 +49,8 @@ environments:
     include:
       - name: env/git_directory_branch_hash
         type: builtin
+    with_vars:
+      DOMAIN: "{{DOMAIN}}"
 
   - name: ns-k8s
     include:
@@ -57,10 +59,18 @@ environments:
       - name: env/git_submodule_commit_hash
         type: builtin
 
-builds:
+pre_utilities:
   - name: applyK8sSecret
     context_steps:
-      - context: local-k8s|ns-k8s
+      - context: local-k8s
+        with_env:
+          - local-k8s
+        steps:
+          - type: builtin
+            name: bashScript
+            with_vars:
+              SCRIPT: script/applySecret.sh
+      - context: ns-k8s
         with_env:
           - ns
         steps:
@@ -87,7 +97,7 @@ builds:
             name: bashScript
             with_vars:
               SCRIPT: script/createNamespace.sh
-
+builds:
   - name: b-micro-x
     service: "{{SERVICE}}"
     context_steps:
@@ -152,7 +162,6 @@ deploys:
           - type: builtin
             name: helm
 
-
   - name: d-health-checker
     service: "{{HEALTH_CHECKER_SERVICE}}"
     dir: "{{HEALTH_CHECKER_DIR}}"
@@ -198,3 +207,28 @@ deploys:
       - name: d-micro-a
       - name: d-micro-b
       - name: d-health-checker
+
+  - name: all-test
+    depends_on:
+      - name: all
+      - name: postman-health-check
+
+tests:
+  - name: postman-health-check
+    context_steps:
+      - context: local-k8s
+        with_env:
+          - local-k8s
+        steps:
+          - type: builtin
+            name: bashScript
+            with_vars:
+              SCRIPT: script/runPostmanTests.sh
+      - context: ns-k8s
+        with_env:
+          - ns
+        steps:
+          - type: builtin
+            name: bashScript
+            with_vars:
+              SCRIPT: script/runPostmanTests.sh
