@@ -11,16 +11,7 @@ runs:
       run: echo $KUBECTL_CONFIG_BASE64 | base64 --decode > ~/.kube/config
     - name: "Login with docker hub."
       shell: bash
-      run: echo "$DOCKERHUB_USERNAME" | docker login $DOCKER_REGISTRY -u "$DOCKERHUB_USERNAME" --password-stdin
-    - name: "Apply image pull secret"
+      run: echo "$DOCKERHUB_PASS" | docker login $DOCKER_REGISTRY -u "$DOCKERHUB_USERNAME" --password-stdin
+    - name: "Ozone - Build deploy test."
       shell: bash
-      run: ./projects/script-common/applyImagePullSecret.sh $SUBDOMAIN
-    - name: "Change ws-data-persistence to branch."
-      shell: bash
-      run: cd $GITHUB_WORKSPACE && ./script/changeDataPersistenceBranch.sh
-    - name: "Build branch and deploy."
-      shell: bash
-      run: cd $GITHUB_WORKSPACE && ./script/buildWebshrinkerWithNamespace.sh $DOMAIN $SUBDOMAIN
-    - name: "Sleep 150s to allow containers to start etc..."
-      shell: bash
-      run: sleep 150
+      run: cd $GITHUB_WORKSPACE && ozone r -c ns-k8s -d all-test

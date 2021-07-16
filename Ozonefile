@@ -61,18 +61,15 @@ environments:
 
 pre_utilities:
   - name: applyK8sSecret
-    context_steps:
+    context_envs:
       - context: local-k8s
         with_env:
           - local-k8s
-        steps:
-          - type: builtin
-            name: bashScript
-            with_vars:
-              SCRIPT: script/applySecret.sh
       - context: ns-k8s
         with_env:
           - ns
+    context_steps:
+      - context: local-k8s|ns-k8s
         steps:
           - type: builtin
             name: bashScript
@@ -80,18 +77,17 @@ pre_utilities:
               SCRIPT: script/applySecret.sh
 
   - name: createNamespace
-    context_steps:
+    context_envs:
       - context: local-k8s
         with_env:
           - local-k8s
-        steps:
-          - type: builtin
-            name: bashScript
-            with_vars:
-              SCRIPT: script/createNamespace.sh
       - context: ns-k8s
         with_env:
           - ns
+    context_steps:
+      - context: local-k8s|ns-k8s
+        with_env:
+          - local-k8s
         steps:
           - type: builtin
             name: bashScript
@@ -100,19 +96,17 @@ pre_utilities:
 builds:
   - name: b-micro-x
     service: "{{SERVICE}}"
-    context_steps:
-      - context: local
+    context_envs:
+      - context: "{{CONTEXT}}"
         with_env:
           - "{{CONTEXT}}"
+    context_steps:
+      - context: "{{CONTEXT}}"
         steps:
           - type: builtin
             name: buildDockerImage
       - context: local-k8s|ns-k8s
-        with_env:
-          - "{{CONTEXT}}"
         steps:
-          - type: builtin
-            name: buildDockerImage
           - type: builtin
             name: pushDockerImage
 
@@ -145,19 +139,21 @@ builds:
 
 deploys:
   - name: d-micro-x
-    context_steps:
-      - context: local
+    context_envs:
+      - context: local-k8s|ns-k8s
+        with_env:
+          - helm-base
+      - context: "{{CONTEXT}}"
         with_env:
           - "{{CONTEXT}}"
+    context_steps:
+      - context: local
         steps:
           - type: builtin
             name: runDockerImage
             with_vars:
               NETWORK: "{{PROJECT}}"
       - context: local-k8s|ns-k8s
-        with_env:
-          - helm-base
-          - "{{CONTEXT}}"
         steps:
           - type: builtin
             name: helm
@@ -165,8 +161,10 @@ deploys:
   - name: d-health-checker
     service: "{{HEALTH_CHECKER_SERVICE}}"
     dir: "{{HEALTH_CHECKER_DIR}}"
-    with_env:
-      - "{{CONTEXT}}"
+    context_envs:
+      - context: "{{CONTEXT}}"
+        with_env:
+          - "{{CONTEXT}}"
     depends_on:
       - name: d-micro-x
         with_vars:
@@ -177,8 +175,10 @@ deploys:
   - name: d-micro-a
     dir: "{{MICRO_A_DIR}}"
     service: "{{MICRO_A_SERVICE}}"
-    with_env:
-      - base_secret
+    context_envs:
+      - context: "{{CONTEXT}}"
+        with_env:
+          - base_secret
     depends_on:
       - name: d-micro-x
         with_vars:
@@ -188,8 +188,10 @@ deploys:
   - name: d-micro-b
     service: micro-b
     dir: "{{MICRO_X_DIR}}"
-    with_env:
-      - "{{CONTEXT}}"
+    context_envs:
+      - context: "{{CONTEXT}}"
+        with_env:
+          - "{{CONTEXT}}"
     depends_on:
       - name: d-micro-x
         with_vars:
@@ -215,18 +217,15 @@ deploys:
 
 tests:
   - name: postman-health-check
-    context_steps:
+    context_envs:
       - context: local-k8s
         with_env:
           - local-k8s
-        steps:
-          - type: builtin
-            name: bashScript
-            with_vars:
-              SCRIPT: script/runPostmanTests.sh
       - context: ns-k8s
         with_env:
           - ns
+    context_steps:
+      - context: local-k8s|ns-k8s
         steps:
           - type: builtin
             name: bashScript
