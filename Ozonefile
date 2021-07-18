@@ -231,3 +231,20 @@ tests:
             name: bashScript
             with_vars:
               SCRIPT: script/runPostmanTests.sh
+
+post_utilities:
+  - name: delete-cluster
+    context_envs:
+      - context: local-k8s
+        with_env:
+          - local-k8s
+      - context: ns-k8s
+        with_env:
+          - ns
+    context_steps:
+      - context: local-k8s|ns-k8s
+        steps:
+          - type: builtin
+            name: bashScript
+            with_vars:
+              SCRIPT: script/applySecret.sh

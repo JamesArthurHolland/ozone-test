@@ -24,16 +24,17 @@ runs:
       run: echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list &&
         sudo apt-get update &&
         sudo apt-get install -y kubectl
+    - name: "Install golang"
+      shell: bash
+      run: sudo add-apt-repository ppa:longsleep/golang-backports
+        sudo apt update
+        sudo apt install golang-go
+    - name: "Install ozone"
+      shell: bash
+      run: go get -u github.com/JamesArthurHolland/ozone/ozone
     - name: "Install npm"
       shell: bash
       run: sudo apt install -y nodejs-dev node-gyp libssl1.0-dev npm
     - name: "Install newman"
       shell: bash
       run: sudo npm install -g newman
-#    - name: "Python deps"
-#      shell: bash
-#      run: |
-#        curl https://bootstrap.pypa.io/get-pip.py | python3
-#        python3 -m pip install --upgrade pip
-#        python3 -m pip install requests -i https://pypi.python.org/simple/
-#        python3 -m pip install -U PyYAML

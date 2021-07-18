@@ -43,15 +43,11 @@ jobs:
         env:
           SUBDOMAIN: ${{ steps.get_subdomain.outputs.url_safe }}
     env:
-      ENV: "DEV"
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_PASS }}
-      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64_STAGING }}
-      WS_SECRET: ${{ secrets.SECRET_BASE64_DEV }}
+      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
+      HELM_SECRET_BASE64: ${{ secrets.HELM_SECRET_BASE64 }}
       DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
-      IS_CICD_ENV: "true"
-      COMPOSER_PAT: ${{ secrets.COMPOSER_PAT }}
-      SECRET_FILE: "/home/runner/webshrinker/secret.yml"
-      DOMAIN: "dnsfilter.me"
-      USE_SUBDOMAIN: true
+      SECRET_FILE: "/home/runner/secret.yml"
+      DOMAIN: "test.com"

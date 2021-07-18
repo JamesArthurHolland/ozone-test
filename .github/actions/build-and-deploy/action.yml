@@ -9,6 +9,9 @@ runs:
     - name: "Setup kubectl config for auth"
       shell: bash
       run: echo $KUBECTL_CONFIG_BASE64 | base64 --decode > ~/.kube/config
+    - name: "Setup helm secret."
+      shell: bash
+      run: echo "$HELM_SECRET_BASE64" | base64 --decode > $SECRET_FILE
     - name: "Login with docker hub."
       shell: bash
       run: echo "$DOCKERHUB_PASS" | docker login $DOCKER_REGISTRY -u "$DOCKERHUB_USERNAME" --password-stdin

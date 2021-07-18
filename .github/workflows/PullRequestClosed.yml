@@ -16,18 +16,11 @@ jobs:
           token: ${{ secrets.GH_PAT }}
       - name: "Make kube directory"
         shell: bash
-        run: mkdir ~/.kube; mkdir ~/webshrinker
+        run: mkdir ~/.kube;
       - name: "Setup kubectl config for auth"
         shell: bash
         run: echo $KUBECTL_CONFIG_BASE64 | base64 --decode > ~/.kube/config
-      - name: Get base64 subdomain from branch name
-        id: get_subdomain
-        run:
-          echo "##[set-output name=hash;]$(cd $GITHUB_WORKSPACE && ./projects/script-common/convertBase64URL.sh ${{ github.head_ref }})"
-      - name: "Teardown namespace."
-        run: cd $GITHUB_WORKSPACE && ./projects/script-common/teardownNamespace.sh "$NAMESPACE"
-        env:
-          NAMESPACE: "${{ steps.get_subdomain.outputs.hash }}"
+      - name: ""
     env:
       KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64_STAGING }}
   close_pr_without_merge:
@@ -41,7 +34,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
       - name: "Make kube directory"
         shell: bash
-        run: mkdir ~/.kube; mkdir ~/webshrinker
+        run: mkdir ~/.kube;
       - name: "Setup kubectl config for auth"
         shell: bash
         run: echo $KUBECTL_CONFIG_BASE64 | base64 --decode > ~/.kube/config
