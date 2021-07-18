@@ -17,6 +17,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - name: Get urlsafe subdomain from branch name
         id: get_subdomain
         run:
