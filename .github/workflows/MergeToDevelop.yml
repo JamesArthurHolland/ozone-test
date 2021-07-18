@@ -14,12 +14,12 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
+      - uses: fregante/setup-git-token@v1
+          with:
+            token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
-      - uses: fregante/setup-git-token@v1
-        with:
           token: ${{ secrets.GH_PAT }}
       - name: Get urlsafe subdomain from branch name
         id: get_subdomain

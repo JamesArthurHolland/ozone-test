@@ -10,10 +10,6 @@ jobs:
     name: Build and deploy
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
-          architecture: 'x64'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -21,21 +17,11 @@ jobs:
       - uses: fregante/setup-git-token@v1
         with:
           token: ${{ secrets.GH_PAT }}
-      - name: Get base64 subdomain from branch name
-        id: get_subdomain
-        run:
-          echo "##[set-output name=hash;]$(cd $GITHUB_WORKSPACE && ./projects/script-common/convertBase64URL.sh ${{ github.head_ref }})"
       - name: Install deps
         uses: ./.github/actions/install-deps
       - name: Build deploy test
         uses: ./.github/actions/build-and-deploy
-        env:
-          SUBDOMAIN: "${{ steps.get_subdomain.outputs.hash }}."
-          GITLAB_PAT: ${{ secrets.DOCKERHUB_USERNAME }}
-      - name: Run postman e2e tests
-        uses: ./.github/actions/postman-e2e-test
-        env:
-          SUBDOMAIN: "${{ steps.get_subdomain.outputs.hash }}."
+      #- name: Run postman e2e tests
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_PASS }}
