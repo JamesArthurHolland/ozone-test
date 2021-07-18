@@ -10,13 +10,9 @@ jobs:
     name: Build and deploy
     runs-on: ubuntu-18.04
     steps:
-      - uses: fregante/setup-git-token@v1
-        with:
-          token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
 
       - name: Install deps
         uses: ./.github/actions/install-deps
