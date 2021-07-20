@@ -3,9 +3,9 @@ description: 'Installs docker, kubectl, npm, newman'
 runs:
   using: "composite"
   steps:
-    - name: "Fix GPG repo"
-      shell: bash
-      run: sudo add-apt-repository ppa:webupd8team/y-ppa-manager && sudo apt-get --allow-releaseinfo-change update -y && sudo apt-get install y-ppa-manager -y
+    #- name: "Fix GPG repo"
+    #  shell: bash
+    #  run: sudo add-apt-repository ppa:webupd8team/y-ppa-manager && sudo apt-get --allow-releaseinfo-change update -y && sudo apt-get install y-ppa-manager -y
     - name: "Add kubectl repo"
       shell: bash
       run: sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2 &&
