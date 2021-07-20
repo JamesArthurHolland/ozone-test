@@ -27,6 +27,9 @@ runs:
       run: echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list &&
         sudo apt-get update &&
         sudo apt-get install -y kubectl
+    - name: "test"
+      shell: bash
+      run: echo "here before golang"
     - name: "Install golang"
       shell: bash
       run: sudo add-apt-repository ppa:longsleep/golang-backports
@@ -38,6 +41,9 @@ runs:
     - name: "Install npm"
       shell: bash
       run: sudo apt install -y nodejs-dev node-gyp libssl1.0-dev npm
+    - name: "test"
+      shell: bash
+      run: echo "here4"
     - name: "Install newman"
       shell: bash
       run: sudo npm install -g newman
