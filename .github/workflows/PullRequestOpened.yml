@@ -18,7 +18,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USER }}
+          username: ozone2021
           password: ${{ secrets.DOCKERHUB_PASS }}
       - name: Build deploy test
         uses: ./.github/actions/build-and-deploy
