@@ -29,7 +29,7 @@ runs:
       run: sudo add-apt-repository ppa:longsleep/golang-backports
         sudo apt update
         sudo apt install golang-go
-    - name: "Install ozone"
+    - name: "Install ozone."
       shell: bash
       run: go get -u github.com/JamesArthurHolland/ozone/ozone
     - name: "Install npm"
