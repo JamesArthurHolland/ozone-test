@@ -12,11 +12,6 @@ runs:
     - name: "Setup helm secret."
       shell: bash
       run: echo "$HELM_SECRET_BASE64" | base64 --decode > $SECRET_FILE
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.$DOCKERHUB_USERNAME }}
-        password: ${{ secrets.$DOCKERHUB_PASS }}
     - name: "Ozone - Build deploy test."
       shell: bash
       run: cd $GITHUB_WORKSPACE && ozone r -c ns-k8s -d all-test
