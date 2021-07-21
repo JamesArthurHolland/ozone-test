@@ -28,6 +28,7 @@ jobs:
       HELM_SECRET_BASE64: ${{ secrets.SECRET_BASE64_DEV }}
       DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
       DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_PASS }}
+      DOCKERHUB_USER: ozone2021
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
       SECRET_FILE: "/home/runner/secret.yml"
       DOMAIN: "test.com"
