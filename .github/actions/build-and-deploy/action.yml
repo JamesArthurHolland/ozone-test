@@ -14,7 +14,7 @@ runs:
       run: echo "$HELM_SECRET_BASE64" | base64 --decode > $SECRET_FILE
     - name: "Login with docker hub."
       shell: bash
-      run: echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+      run: docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
     - name: "Ozone - Build deploy test."
       shell: bash
       run: cd $GITHUB_WORKSPACE && ozone r -c ns-k8s -d all-test
