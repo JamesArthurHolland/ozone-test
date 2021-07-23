@@ -22,7 +22,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASS }}
       - name: Build deploy test
         uses: ./.github/actions/build-and-deploy
-      #- name: Run postman e2e tests
+      #- name: Run postman  e2e tests
     env:
       KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
       HELM_SECRET_BASE64: ${{ secrets.SECRET_BASE64_DEV }}
