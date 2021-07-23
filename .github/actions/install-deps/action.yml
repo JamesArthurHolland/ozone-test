@@ -38,6 +38,9 @@ runs:
     - name: "Install ozone."
       shell: bash
       run: go get -u github.com/ozone2021/ozone/ozone
+    - name: "find ozone"
+      shell: bash
+      run: find . -name ozone
     - name: "Golang path"
       shell: bash
       run: echo "$HOME/golang/bin" >> $GITHUB_PATH
