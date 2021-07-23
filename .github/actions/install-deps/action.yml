@@ -37,7 +37,7 @@ runs:
         sudo apt install golang-go
     - name: "Install ozone."
       shell: bash
-      run: go get -u github.com/JamesArthurHolland/ozone/ozone
+      run: go get -u github.com/ozone2021/ozone/ozone
     - name: "Install npm"
       shell: bash
       run: sudo apt install -y nodejs-dev node-gyp libssl1.0-dev npm
