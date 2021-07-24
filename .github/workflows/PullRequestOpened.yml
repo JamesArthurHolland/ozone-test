@@ -24,6 +24,11 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.14
+      - name: Debug
+        run: |
+          pwd
+          echo ${GOPATH}
+          echo ${GOROOT}
       - name: Build deploy test
         uses: ./.github/actions/build-and-deploy
 
