@@ -28,6 +28,7 @@ jobs:
         run: |
           pwd
           echo ${GOPATH}
+          ls ${GOPATH}
           echo ${GOROOT}
       - name: Build deploy test
         uses: ./.github/actions/build-and-deploy
