@@ -30,10 +30,6 @@ runs:
     - name: "test"
       shell: bash
       run: echo "here before golang"
-    - name: Set up Go 1.14
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.14
     - name: "Install ozone."
       shell: bash
       run: go get -u github.com/ozone2021/ozone/ozone
