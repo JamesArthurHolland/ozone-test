@@ -32,10 +32,12 @@ jobs:
           echo ${GOROOT}
       - name: Build deploy test
         uses: ./.github/actions/build-and-deploy
+        env:
+          GIT_BRANCH: ${{ github.head_ref }}
 
     env:
       KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
-      HELM_SECRET_BASE64: ${{ secrets.SECRET_BASE64_DEV }}
+      HELM_SECRET_BASE64: ${{ secrets.SECRET_BASE64 }}
       DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
       DOCKERHUB_USER: ozone2021
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}

@@ -49,8 +49,9 @@ environments:
     include:
       - name: env/git_directory_branch_hash
         type: builtin
-    with_vars:
-      DOMAIN: "{{DOMAIN}}"
+        with_vars:
+          DOMAIN: "{{DOMAIN}}"
+          GIT_BRANCH: "{{GIT_BRANCH}}"
 
   - name: ns-k8s
     include:
