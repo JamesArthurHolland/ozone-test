@@ -88,7 +88,7 @@ pre_utilities:
     context_steps:
       - context: local-k8s|ns-k8s
         with_env:
-          - {{CONTEXT}}
+          - "{{CONTEXT}}"
         steps:
           - type: builtin
             name: bashScript
