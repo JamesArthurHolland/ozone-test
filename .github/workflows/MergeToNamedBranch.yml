@@ -30,7 +30,7 @@ jobs:
         with:
           go-version: 1.14
       - name: Build deploy
-        uses: ./.github/actions/build-and-deploy
+        uses: ./.github/actions/build-deploy-static
         env:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
       - name: Run health check
