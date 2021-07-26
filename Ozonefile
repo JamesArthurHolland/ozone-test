@@ -236,6 +236,10 @@ deploys:
       - name: postman-health-check
 
 tests:
+  - name: test-all
+    depends_on:
+      - name: postman-health-check
+
   - name: postman-health-check
     context_envs:
       - context: local-k8s

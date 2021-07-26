@@ -14,4 +14,4 @@ runs:
       run: echo "$HELM_SECRET_BASE64" | base64 --decode > $SECRET_FILE
     - name: "Ozone - Build deploy test."
       shell: bash
-      run: cd $GITHUB_WORKSPACE && ozone r -c ns-k8s -d all-test
+      run: cd $GITHUB_WORKSPACE && ozone r -c dynamic-ns-k8s -d all
