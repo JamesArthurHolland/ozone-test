@@ -47,6 +47,7 @@ jobs:
       KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
       HELM_SECRET_BASE64: ${{ secrets.HELM_SECRET_BASE64 }}
       DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+      DOCKERHUB_USER: ozone2021
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
       SECRET_FILE: "/home/runner/secret.yml"
       DOMAIN: "test.com"
