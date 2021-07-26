@@ -35,7 +35,7 @@ jobs:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
       - name: Test
         shell: bash
-          run: cd $GITHUB_WORKSPACE && ozone r -c static-ns-k8s -d test-all
+        run: cd $GITHUB_WORKSPACE && ozone r -c static-ns-k8s -d test-all
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_PASS }}
