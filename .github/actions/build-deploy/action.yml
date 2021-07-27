@@ -1,6 +1,9 @@
 name: 'Ozone build deploy'
 description: 'Builds containers, pushes them to docker repo, deploys on k8s cluster using ozone'
 inputs:
+  context:
+    description: 'Ozone context'
+    required: true
   docker_user:
     description: 'Dockerhub username'
     required: true
@@ -19,15 +22,9 @@ inputs:
   k8s_config_base64:
     description: 'Base64 encryption of k8s config'
     required: true
-  secret_file_path:
-    description: 'Path on vm of secrets file'
 runs:
   using: "composite"
   steps:
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: extract_branch
     - uses: actions/checkout@v2
       with:
         submodules: recursive
@@ -53,6 +50,8 @@ runs:
       shell: bash
       run: cd $GITHUB_WORKSPACE && ozone r -c  -d all
       env:
+        GIT_BRANCH: ${{ inputs.git_branch }}
+        CONTEXT: ${{ inputs.context }}
         K8S_SECRET_BASE64: ${{ inputs.k8s_secret_base64 }}
         KUBECTL_CONFIG_BASE64: ${{ inputs.k8s_config_base64 }}
         DOCKER_REGISTRY: ${{ inputs.docker_registry }}
