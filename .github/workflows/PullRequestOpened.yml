@@ -34,5 +34,5 @@ jobs:
         env:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
           CONTEXT: ${{ env.CONTEXT }}
-  env:
-    CONTEXT: dynamic-ns-k8s
+    env:
+      CONTEXT: dynamic-ns-k8s
