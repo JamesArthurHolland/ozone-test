@@ -28,9 +28,11 @@ jobs:
           k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
         env:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
-          CONTEXT: dynamic-ns-k8s
+          CONTEXT: ${{ env.CONTEXT }}
       - name: Test
         uses: ./.github/actions/build-deploy
         env:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
-          CONTEXT: dynamic-ns-k8s
+          CONTEXT: ${{ env.CONTEXT }}
+  env:
+    CONTEXT: dynamic-ns-k8s
