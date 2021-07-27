@@ -49,9 +49,6 @@ runs:
     - name: "Setup kubectl config for auth"
       shell: bash
       run: echo "${{ inputs.k8s_config_base64 }}" | base64 --decode > ~/.kube/config
-    - name: "Setup helm secret."
-      shell: bash
-      run: echo "${{ inputs.k8s_secret_base64 }}" | base64 --decode > $SECRET_FILE
     - name: "Ozone - Build deploy."
       shell: bash
       run: cd $GITHUB_WORKSPACE && ozone r -c  -d all
