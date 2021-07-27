@@ -16,6 +16,9 @@ inputs:
   domain:
     description: 'Domain'
     required: true
+  git_branch:
+    description: 'Extracted git branch'
+    required: true
   k8s_secret_base64:
     description: 'Base64 encryption of k8s secret'
     required: true
