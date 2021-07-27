@@ -10,36 +10,23 @@ jobs:
     name: Build and deploy
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: Install deps
-        uses: ./.github/actions/install-deps
-      - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          username: ${{ env.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_PASS }}
-      - name: Set up Go 1.14
-        uses: actions/setup-go@v2.1.3
-        with:
-          go-version: 1.14
-      - name: Debug
-        run: |
-          pwd
-          echo ${GOPATH}
-          ls ${GOPATH}
-          echo ${GOROOT}
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
       - name: Build deploy test
-        uses: ./.github/actions/build-and-deploy
+        uses: ./.github/actions/build-deploy
+        with:
+          docker_user: ozone2021
+          docker_pass: ${{ secrets.DOCKER_PASS }}
+          docker_registry: docker.io
+          domain: test.com
+          k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
         env:
-          GIT_BRANCH: ${{ github.head_ref }}
-
-    env:
-      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
-      HELM_SECRET_BASE64: ${{ secrets.SECRET_BASE64 }}
-      DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
-      DOCKERHUB_USER: ozone2021
-      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
-      SECRET_FILE: "/home/runner/secret.yml"
-      DOMAIN: "test.com"
+          GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          CONTEXT: dynamic-ns-k8s
+      - name: Test
+        uses: ./.github/actions/build-deploy
+        env:
+          GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          CONTEXT: dynamic-ns-k8s

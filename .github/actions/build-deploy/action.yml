@@ -1,0 +1,65 @@
+name: 'Ozone build deploy'
+description: 'Builds containers, pushes them to docker repo, deploys on k8s cluster using ozone'
+inputs:
+  docker_user:
+    description: 'Dockerhub username'
+    required: true
+  docker_pass:
+    description: 'Dockerhub password'
+    required: true
+  docker_registry:
+    description: 'Dockerhub password'
+    required: true
+  domain:
+    description: 'Domain'
+    required: true
+  k8s_secret_base64:
+    description: 'Base64 encryption of k8s secret'
+    required: true
+  k8s_config_base64:
+    description: 'Base64 encryption of k8s config'
+    required: true
+  secret_file_path:
+    description: 'Path on vm of secrets file'
+runs:
+  using: "composite"
+  steps:
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Install deps
+      uses: ./.github/actions/install-deps
+    - name: Log in to Docker Hub
+      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        username: ${{ inputs.docker_user }}
+        password: ${{ inputs.docker_pass }}
+        registry: ${{ inputs.docker_registry }}
+    - name: Set up Go 1.14
+      uses: actions/setup-go@v2.1.3
+      with:
+        go-version: 1.14
+    - name: "Make kube directory"
+      shell: bash
+      run: mkdir ~/.kube
+    - name: "Setup kubectl config for auth"
+      shell: bash
+      run: echo "${{ inputs.k8s_config_base64 }}" | base64 --decode > ~/.kube/config
+    - name: "Setup helm secret."
+      shell: bash
+      run: echo "${{ inputs.k8s_secret_base64 }}" | base64 --decode > $SECRET_FILE
+    - name: "Ozone - Build deploy."
+      shell: bash
+      run: cd $GITHUB_WORKSPACE && ozone r -c  -d all
+      env:
+        K8S_SECRET_BASE64: ${{ inputs.k8s_secret_base64 }}
+        KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
+        HELM_SECRET_BASE64: ${{ secrets.SECRET_BASE64 }}
+        DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+        DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+        SECRET_FILE: "/home/runner/secret.yml"
+        DOMAIN: "test.com"
