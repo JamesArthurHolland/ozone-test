@@ -15,7 +15,6 @@ build_vars:
     MICRO_A_DIR: ./micro-a
     MICRO_X_DIR: ./micro-x
     MICRO_A_SERVICE: micro-a
-    SECRET_FILE: ./secret.yml
     HELM_CHART: helm
     MICRO_X_DIR: ./micro-x
     HEALTH_CHECKER_DIR: ./health-checker
