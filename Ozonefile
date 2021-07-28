@@ -12,6 +12,7 @@ build_vars:
     NS_K8S_CONTEXTS: 'dynamic-ns-k8s|static-ns-k8s'
     DOMAIN: '{{DOMAIN | default_if_none:"o3.local"}}'
     DOCKER_REGISTRY: '{{DOCKER_REGISTRY | default_if_none:"registry.local"}}'
+    SECRET_BASE64: '{{SECRET_BASE64}}'
     MICRO_A_DIR: ./micro-a
     MICRO_X_DIR: ./micro-x
     MICRO_A_SERVICE: micro-a
