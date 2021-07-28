@@ -29,7 +29,7 @@ runs:
       run: go get -u github.com/ozone2021/ozone/ozone
     - name: "Install npm"
       shell: bash
-      run: sudo apt install -y libnode nodejs-dev node-gyp libssl1.0-dev npm
+      run: sudo apt install -y nodejs-dev node-gyp libssl1.0-dev npm
     - name: "Install newman"
       shell: bash
       run: sudo npm install -g newman
