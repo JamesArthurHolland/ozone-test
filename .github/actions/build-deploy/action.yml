@@ -30,16 +30,6 @@ runs:
   steps:
     - name: Install deps
       uses: ./.github/actions/install-deps
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ inputs.docker_user }}
-        password: ${{ inputs.docker_pass }}
-        registry: ${{ inputs.docker_registry }}
-    - name: Set up Go 1.14
-      uses: actions/setup-go@v2.1.3
-      with:
-        go-version: 1.14
     - name: "Make kube directory"
       shell: bash
       run: mkdir ~/.kube
