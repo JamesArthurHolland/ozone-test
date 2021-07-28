@@ -273,4 +273,4 @@ post_utilities:
           - type: builtin
             name: bashScript
             with_vars:
-              SCRIPT: script/applySecret.sh
+              SCRIPT: script/deleteNamespace.sh
