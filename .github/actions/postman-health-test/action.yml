@@ -4,4 +4,4 @@ runs:
   steps:
     - name: "Ozone - Build deploy."
       shell: bash
-      run: cd $GITHUB_WORKSPACE && ozone r -c $CONTEXT -d all
+      run: cd $GITHUB_WORKSPACE && ozone r -c $CONTEXT -d test-all
