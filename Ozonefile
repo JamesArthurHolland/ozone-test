@@ -22,9 +22,16 @@ build_vars:
     HEALTH_CHECKER_SERVICE: health-checker
 
 environments:
-  - name: base_secret
+  - name: base_secret_file
     include:
-      - name: env/from_k8s_secret
+      - name: env/from_k8s_secret_file
+        type: builtin
+        with_vars:
+          SECRET_FILE: ./secret.yml
+
+  - name: base_secret64
+    include:
+      - name: env/from_k8s_secret64
         type: builtin
 
   - name: local
@@ -63,14 +70,14 @@ environments:
   - name: static-ns-k8s
     include:
       - name: static-ns
-      - name: base_secret
+      - name: base_secret64
       - name: env/git_submodule_commit_hash
         type: builtin
 
   - name: dynamic-ns-k8s
     include:
-      - name: local
       - name: ns
+      - name: base_secret64
       - name: env/git_submodule_commit_hash
         type: builtin
 
