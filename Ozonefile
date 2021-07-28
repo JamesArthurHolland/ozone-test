@@ -181,10 +181,6 @@ deploys:
   - name: d-health-checker
     service: "{{HEALTH_CHECKER_SERVICE}}"
     dir: "{{HEALTH_CHECKER_DIR}}"
-    context_envs:
-      - context: "{{CONTEXT}}"
-        with_env:
-          - "{{CONTEXT}}"
     depends_on:
       - name: d-micro-x
         with_vars:
@@ -244,6 +240,9 @@ tests:
       - context: dynamic-ns-k8s
         with_env:
           - ns
+      - context: static-ns-k8s
+        with_env:
+          - static-ns
     context_steps:
       - context: "local-k8s|{{NS_K8S_CONTEXTS}}"
         steps:
@@ -253,7 +252,7 @@ tests:
               SCRIPT: script/runPostmanTests.sh
 
 post_utilities:
-  - name: delete-cluster
+  - name: delete-namespace
     context_envs:
       - context: local-k8s
         with_env:
@@ -261,6 +260,9 @@ post_utilities:
       - context: dynamic-ns-k8s
         with_env:
           - ns
+      - context: static-ns-k8s
+        with_env:
+          - static-ns
     context_steps:
       - context: "local-k8s|{{NS_K8S_CONTEXTS}}"
         steps:
