@@ -36,7 +36,7 @@ jobs:
           git_branch: ${{ steps.extract_branch.outputs.branch }}
           context: $CONTEXT
       - name: Test
-        uses: ./.github/actions/build-deploy
+        uses: ./.github/actions/postman-health-test
         env:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
           CONTEXT: ${{ env.CONTEXT }}
