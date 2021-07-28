@@ -38,10 +38,9 @@ runs:
       run: echo "${{ inputs.k8s_config_base64 }}" | base64 --decode > ~/.kube/config
     - name: "Ozone - Build deploy."
       shell: bash
-      run: cd $GITHUB_WORKSPACE && ozone r -c  -d all
+      run: cd $GITHUB_WORKSPACE && ozone r -c ${{ inputs.context }} -d all
       env:
         GIT_BRANCH: ${{ inputs.git_branch }}
-        CONTEXT: ${{ inputs.context }}
         K8S_SECRET_BASE64: ${{ inputs.k8s_secret_base64 }}
         KUBECTL_CONFIG_BASE64: ${{ inputs.k8s_config_base64 }}
         DOCKER_REGISTRY: ${{ inputs.docker_registry }}
