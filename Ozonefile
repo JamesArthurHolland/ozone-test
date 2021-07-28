@@ -181,6 +181,10 @@ deploys:
   - name: d-health-checker
     service: "{{HEALTH_CHECKER_SERVICE}}"
     dir: "{{HEALTH_CHECKER_DIR}}"
+    context_envs:
+      - context: "{{CONTEXT}}"
+        with_env:
+          - "{{CONTEXT}}"
     depends_on:
       - name: d-micro-x
         with_vars:
