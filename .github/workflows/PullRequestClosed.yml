@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
+          # token: ${{ secrets.GH_PAT }} # token not needed for opensource repos
       - name: "Make kube directory"
         shell: bash
         run: mkdir ~/.kube;
@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: echo $KUBECTL_CONFIG_BASE64 | base64 --decode > ~/.kube/config
     env:
-      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64_STAGING }}
+      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
   close_pr_without_merge:
     name: Pull request closed without merge
     if: github.event.pull_request.merged == false
@@ -30,7 +30,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
       - name: "Make kube directory"
         shell: bash
         run: mkdir ~/.kube;
@@ -42,9 +41,8 @@ jobs:
         run:
           echo "##[set-output name=hash;]$(cd $GITHUB_WORKSPACE && ./projects/script-common/convertBase64URL.sh ${{ github.head_ref }})"
       - name: "Teardown namespace."
-        run: cd $GITHUB_WORKSPACE && ./projects/script-common/teardownNamespace.sh "$NAMESPACE"
+        run: cd $GITHUB_WORKSPACE && ozone r -c dynamic-ns-k8s -d delete-namespace
         env:
           NAMESPACE: "${{ steps.get_subdomain.outputs.hash }}"
-
     env:
       KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64_STAGING }}

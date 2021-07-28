@@ -248,6 +248,9 @@ tests:
       - context: dynamic-ns-k8s
         with_env:
           - ns
+      - context: static-ns-k8s
+        with_env:
+          - static-ns
     context_steps:
       - context: "local-k8s|{{NS_K8S_CONTEXTS}}"
         steps:
@@ -257,7 +260,7 @@ tests:
               SCRIPT: script/runPostmanTests.sh
 
 post_utilities:
-  - name: delete-cluster
+  - name: delete-namespace
     context_envs:
       - context: local-k8s
         with_env:
@@ -265,10 +268,13 @@ post_utilities:
       - context: dynamic-ns-k8s
         with_env:
           - ns
+      - context: static-ns-k8s
+        with_env:
+          - static-ns
     context_steps:
       - context: "local-k8s|{{NS_K8S_CONTEXTS}}"
         steps:
           - type: builtin
             name: bashScript
             with_vars:
-              SCRIPT: script/applySecret.sh
+              SCRIPT: script/deleteNamespace.sh
