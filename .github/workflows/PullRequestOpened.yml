@@ -21,9 +21,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
-          username: ${{ inputs.docker_user }}
-          password: ${{ inputs.docker_pass }}
-          registry: ${{ inputs.docker_registry }}
+          username: ozone2021
+          password: ${{ secrets.DOCKER_PASS }}
       - name: Set up Go 1.14
         uses: actions/setup-go@v2.1.3
         with:
@@ -31,9 +30,7 @@ jobs:
       - name: Build deploy test
         uses: ./.github/actions/build-deploy
         with:
-          docker_user: ozone2021
-          docker_pass: ${{ secrets.DOCKER_PASS }}
-          docker_registry: docker.io
+          docker_registry: ozone2021
           domain: test.com
           k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
           git_branch: ${{ steps.extract_branch.outputs.branch }}
