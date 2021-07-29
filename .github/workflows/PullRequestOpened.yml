@@ -13,11 +13,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          # token: ${{ secrets.GH_PAT }} #  token not needed for opensource repos
-      - name: Extract branch name
+          # token: ${{ secrets.GH_PAT }} # token not needed for opensource repos.
+      - name: Branch head_ref
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+        run: echo ${{ github.head_ref }}
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -31,15 +30,16 @@ jobs:
         uses: ./.github/actions/build-deploy
         with:
           docker_registry: ozone2021
-          domain: test.com
+          domain: oz0n3.com
           k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
           k8s_config_base64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
-          git_branch: ${{ steps.extract_branch.outputs.branch }}
+          git_branch: ${{ github.head_ref }}
           context: ${{ env.CONTEXT }}
       - name: Test
         uses: ./.github/actions/postman-health-test
         env:
-          GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          GIT_BRANCH: ${{ github.head_ref }}
+          DOMAIN: oz0n3.com
           CONTEXT: ${{ env.CONTEXT }}
     env:
       CONTEXT: dynamic-ns-k8s

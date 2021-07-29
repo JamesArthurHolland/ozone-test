@@ -46,4 +46,4 @@ jobs:
     env:
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
       SECRET_FILE: "/home/runner/secret.yml"
-      DOMAIN: "test.com"
+      DOMAIN: "oz0n3.com"

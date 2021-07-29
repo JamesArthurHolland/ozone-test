@@ -1,9 +1,9 @@
 [submodule "health-checker"]
 	path = health-checker
 	url = git@github.com:ozone2021/health-checker.git
-[submodule "micro-a"]
-	path = micro-a
-	url = git@github.com:ozone2021/micro-a.git
 [submodule "micro-x"]
 	path = micro-x
 	url = git@github.com:ozone2021/micro-x.git
+[submodule "micro-a"]
+	path = micro-a
+	url = git@github.com:ozone2021/micro-a.git
