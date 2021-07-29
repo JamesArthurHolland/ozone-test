@@ -14,13 +14,10 @@ jobs:
         with:
           submodules: recursive
           # token: ${{ secrets.GH_PAT }} # token not needed for opensource repos.
-      - name: Branch head_ref
-        shell: bash
-        run: echo ${{ github.head_ref }}
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
-          username: ozone2021
+          username: ${{ env.DOCKER_USER }}
           password: ${{ env.DOCKER_PASS }}
       - name: Set up Go 1.14
         uses: actions/setup-go@v2.1.3
@@ -29,8 +26,8 @@ jobs:
       - name: Build deploy test
         uses: ./.github/actions/build-deploy
         with:
-          docker_registry: ozone2021
-          domain: oz0n3.com
+          docker_registry: ${{ env.DOCKER_REGISTRY }}
+          domain: ${{ env.DOMAIN }}
           k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
           k8s_config_base64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
           git_branch: ${{ github.head_ref }}
@@ -39,8 +36,11 @@ jobs:
         uses: ./.github/actions/postman-health-test
         env:
           GIT_BRANCH: ${{ github.head_ref }}
-          DOMAIN: oz0n3.com
+          DOMAIN: ${{ env.DOMAIN }}
           CONTEXT: ${{ env.CONTEXT }}
     env:
       CONTEXT: dynamic-ns-k8s
       DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+      DOCKER_USER: ozone2021
+      DOMAIN: oz0n3.com
+      DOCKER_REGISTRY: ozone2021

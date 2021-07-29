@@ -11,13 +11,10 @@ jobs:
     name: Build and deploy
     runs-on: ubuntu-18.04
     steps:
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+          # token: ${{ secrets.GH_PAT }} # token not needed for opensource repos.
       - name: Install deps
         uses: ./.github/actions/install-deps
       - name: Log in to Docker Hub
@@ -32,8 +29,8 @@ jobs:
       - name: Build deploy test
         uses: ./.github/actions/build-deploy
         with:
-          docker_registry: ozone2021
-          domain: test.com
+          docker_registry: ${{ env.DOCKER_REGISTRY }}
+          domain: ${{ env.DOMAIN }}
           k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
           k8s_config_base64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
           git_branch: ${{ steps.extract_branch.outputs.branch }}
@@ -42,8 +39,11 @@ jobs:
         uses: ./.github/actions/postman-health-test
         env:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          DOMAIN: ${{ env.DOMAIN }}
           CONTEXT: ${{ env.CONTEXT }}
     env:
-      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
-      SECRET_FILE: "/home/runner/secret.yml"
-      DOMAIN: "oz0n3.com"
+      CONTEXT: dynamic-ns-k8s
+      DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+      DOCKER_USER: ozone2021
+      DOMAIN: oz0n3.com
+      DOCKER_REGISTRY: ozone2021
