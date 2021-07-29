@@ -14,10 +14,6 @@ jobs:
         with:
           submodules: recursive
           # token: ${{ secrets.GH_PAT }} # token not needed for opensource repos.
-      #- name: Extract branch name
-      #  shell: bash
-      #  run: echo "##[set-output name=branch;]$(echo $GITHUB_HEAD_REF)"
-      #  id: extract_branch
       - name: Branch head_ref
         shell: bash
         run: echo ${{ github.head_ref }}
