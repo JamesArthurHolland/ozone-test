@@ -43,6 +43,7 @@ jobs:
         uses: ./.github/actions/postman-health-test
         env:
           GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          DOMAIN: oz0n3.com
           CONTEXT: ${{ env.CONTEXT }}
     env:
       CONTEXT: dynamic-ns-k8s
