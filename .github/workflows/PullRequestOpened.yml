@@ -34,7 +34,7 @@ jobs:
         uses: ./.github/actions/build-deploy
         with:
           docker_registry: ozone2021
-          domain: test.com
+          domain: oz0n3.com
           k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
           k8s_config_base64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
           git_branch: ${{ steps.extract_branch.outputs.branch }}
