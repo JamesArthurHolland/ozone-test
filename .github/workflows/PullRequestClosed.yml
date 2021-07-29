@@ -25,7 +25,7 @@ jobs:
   close_pr_without_merge:
     name: Pull request closed without merge
     if: github.event.pull_request.merged == false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -47,4 +47,4 @@ jobs:
         env:
           GIT_BRANCH: ${{ github.head_ref }}
     env:
-      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64_STAGING }}
+      KUBECTL_CONFIG_BASE64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
