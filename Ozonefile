@@ -12,24 +12,31 @@ build_vars:
     NS_K8S_CONTEXTS: 'dynamic-ns-k8s|static-ns-k8s'
     DOMAIN: '{{DOMAIN | default_if_none:"o3.local"}}'
     DOCKER_REGISTRY: '{{DOCKER_REGISTRY | default_if_none:"registry.local"}}'
+    SECRET_BASE64: '{{SECRET_BASE64}}'
     MICRO_A_DIR: ./micro-a
     MICRO_X_DIR: ./micro-x
     MICRO_A_SERVICE: micro-a
-    SECRET_FILE: ./secret.yml
     HELM_CHART: helm
     MICRO_X_DIR: ./micro-x
     HEALTH_CHECKER_DIR: ./health-checker
     HEALTH_CHECKER_SERVICE: health-checker
 
 environments:
-  - name: base_secret
+  - name: base_secret_file
     include:
-      - name: env/from_k8s_secret
+      - name: env/from_k8s_secret_file
+        type: builtin
+        with_vars:
+          SECRET_FILE: ./secret.yml
+
+  - name: base_secret64
+    include:
+      - name: env/from_k8s_secret64
         type: builtin
 
   - name: local
     include:
-      - name: base_secret
+      - name: base_secret_file
 
   - name: local-k8s
     include:
@@ -63,14 +70,14 @@ environments:
   - name: static-ns-k8s
     include:
       - name: static-ns
-      - name: base_secret
+      - name: base_secret64
       - name: env/git_submodule_commit_hash
         type: builtin
 
   - name: dynamic-ns-k8s
     include:
-      - name: local
       - name: ns
+      - name: base_secret64
       - name: env/git_submodule_commit_hash
         type: builtin
 
@@ -196,9 +203,12 @@ deploys:
     dir: "{{MICRO_A_DIR}}"
     service: "{{MICRO_A_SERVICE}}"
     context_envs:
-      - context: "{{CONTEXT}}"
+      - context: local|local-k8s
         with_env:
-          - base_secret
+          - base_secret_file
+      - context: "{{NS_K8S_CONTEXTS}}"
+        with_env:
+          - base_secret64
     depends_on:
       - name: d-micro-x
         with_vars:

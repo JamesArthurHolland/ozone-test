@@ -41,7 +41,7 @@ runs:
       run: cd $GITHUB_WORKSPACE && ozone r -c ${{ inputs.context }} -d all
       env:
         GIT_BRANCH: ${{ inputs.git_branch }}
-        K8S_SECRET_BASE64: ${{ inputs.k8s_secret_base64 }}
+        SECRET_BASE64: ${{ inputs.k8s_secret_base64 }}
         KUBECTL_CONFIG_BASE64: ${{ inputs.k8s_config_base64 }}
         DOCKER_REGISTRY: ${{ inputs.docker_registry }}
         DOCKER_REPO: ${{ inputs.docker_repo }}
