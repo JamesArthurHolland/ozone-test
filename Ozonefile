@@ -36,7 +36,7 @@ environments:
 
   - name: local
     include:
-      - name: base_secret
+      - name: base_secret_file
 
   - name: local-k8s
     include:
@@ -203,9 +203,12 @@ deploys:
     dir: "{{MICRO_A_DIR}}"
     service: "{{MICRO_A_SERVICE}}"
     context_envs:
-      - context: "{{CONTEXT}}"
+      - context: local|local-k8s
         with_env:
-          - base_secret
+          - base_secret_file
+      - context: "{{NS_K8S_CONTEXTS}}"
+        with_env:
+          - base_secret64
     depends_on:
       - name: d-micro-x
         with_vars:
