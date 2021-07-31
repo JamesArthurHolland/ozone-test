@@ -1,4 +1,4 @@
-name: Merge/Push to a base branch (develop/epics)
+name: Merge/Push to a base branch (develop/epics/main)
 # This workflow is triggered on pushes to the repository.
 on:
   push:
