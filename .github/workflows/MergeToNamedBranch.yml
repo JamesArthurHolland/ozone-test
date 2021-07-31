@@ -42,7 +42,7 @@ jobs:
           DOMAIN: ${{ env.DOMAIN }}
           CONTEXT: ${{ env.CONTEXT }}
     env:
-      CONTEXT: dynamic-ns-k8s
+      CONTEXT: static-ns-k8s
       DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
       DOCKER_USER: ozone2021
       DOMAIN: oz0n3.com
