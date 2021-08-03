@@ -33,7 +33,7 @@ jobs:
           domain: ${{ env.DOMAIN }}
           k8s_secret_base64: ${{ secrets.SECRET_BASE64 }}
           k8s_config_base64: ${{ secrets.KUBECTL_CONFIG_BASE64 }}
-          git_branch: ${{ steps.extract_branch.outputs.branch }}
+          git_branch: ${{ github.head_ref }}
           context: ${{ env.CONTEXT }}
       - name: Test
         uses: ./.github/actions/postman-health-test
