@@ -63,9 +63,12 @@ environments:
           GIT_BRANCH: "{{GIT_BRANCH}}"
 
   - name: static-ns
-    with_vars:
-      NAMESPACE: "{{GIT_BRANCH}}"
-      SUBDOMAIN: "{{GIT_BRANCH}}."
+    include:
+      - name: env/git_directory_branch_static
+        type: builtin
+        with_vars:
+          DOMAIN: "{{DOMAIN}}"
+          GIT_BRANCH: "{{GIT_BRANCH}}"
 
   - name: static-ns-k8s
     include:
