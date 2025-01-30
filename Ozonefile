@@ -4,30 +4,38 @@ context:
     default: local
     list:
       - local
-      - local-k8s
-      - dynamic-ns-k8s
-      - static-ns-k8s
 build_vars:
     NETWORK: '{{PROJECT}}'
     NS_K8S_CONTEXTS: 'dynamic-ns-k8s|static-ns-k8s'
     DOMAIN: '{{DOMAIN | default_if_none:"o3.local"}}'
     DOCKER_REGISTRY: '{{DOCKER_REGISTRY | default_if_none:"registry.local"}}'
+    NAMESPACE: '{{NAMESPACE | default_if_none:"ozone-test"}}'
     SECRET_BASE64: '{{SECRET_BASE64}}'
     MICRO_A_DIR: ./micro-a
     MICRO_X_DIR: ./micro-x
-    MICRO_A_SERVICE: micro-a
+    MICRO_A_SERVICE: microa
     HELM_CHART: helm
-    MICRO_X_DIR: ./micro-x
     HEALTH_CHECKER_DIR: ./health-checker
-    HEALTH_CHECKER_SERVICE: health-checker
+    HEALTH_CHECKER_SERVICE: healthchecker
+    SCRIPT_DIR: ./script
+    services:
+      - microa
+      - microb
+      - microx
+      - healthchecker
 
 environments:
   - name: base_secret_file
     include:
       - name: env/from_k8s_secret_file
         type: builtin
-        with_vars:
+        input_vars:
           SECRET_FILE: ./secret.yml
+
+  - name: all-docker-tags-latest
+    for: service:services
+    with_vars:
+      "{{service | upper}}_FULL_TAG": "{{DOCKER_REGISTRY}}/{{service}}:latest"
 
   - name: base_secret64
     include:
@@ -37,12 +45,9 @@ environments:
   - name: local
     include:
       - name: base_secret_file
-
-  - name: local-k8s
-    include:
-      - name: local
+      - name: all-docker-tags-latest
     with_vars:
-      NAMESPACE: test
+      NAMESPACE: "{{NAMESPACE}}"
 
   - name: helm-base
     with_vars:
@@ -86,16 +91,6 @@ environments:
 
 pre_utilities:
   - name: applyK8sSecret
-    context_envs:
-      - context: local-k8s
-        with_env:
-          - "{{CONTEXT}}"
-      - context: dynamic-ns-k8s
-        with_env:
-          - ns
-      - context: static-ns-k8s
-        with_env:
-          - static-ns
     context_steps:
       - context: "local-k8s|{{NS_K8S_CONTEXTS}}"
         steps:
@@ -104,68 +99,93 @@ pre_utilities:
             with_vars:
               SCRIPT: script/applySecret.sh
 
-  - name: createNamespace
-    context_envs:
-      - context: "local-k8s"
-        with_env:
-          - "{{CONTEXT}}"
-      - context: dynamic-ns-k8s
-        with_env:
-          - ns
-      - context: static-ns-k8s
-        with_env:
-          - static-ns
+  - name: create-namespace
+    steps:
+      - type: builtin
+        name: bashScript
+        with_vars:
+          SCRIPT: script/createNamespace.sh
 
-    context_steps:
-      - context: "local-k8s|{{NS_K8S_CONTEXTS}}"
-        steps:
-          - type: builtin
-            name: bashScript
-            with_vars:
-              SCRIPT: script/createNamespace.sh
+  - name: install-docker-registry
+    steps:
+      - type: builtin
+        name: bashScript
+        with_vars:
+          SCRIPT: script_dev/install_local_docker_registry.sh
+
+  - name: install-istio
+    steps:
+      - type: builtin
+        name: bashScript
+        with_vars:
+          SCRIPT: script/install_istio.sh
+
+  - name: install-infrastructure-dependencies
+    depends_on:
+      - name: create-namespace
+      - name: install-istio
+      - name: install-docker-registry
+      - name: applyK8sSecret
+
 builds:
+  - name: build-generic-go
+    steps:
+      - type: builtin
+        name: buildDockerImage
+        with_vars:
+          DOCKER_FULL_TAG: "{{{{SERVICE | upper}}_FULL_TAG}}"
+          DOCKER_BUILD_DIR: "{{DIR}}"
+      - type: builtin
+        name: pushDockerImage
+        with_vars:
+            DOCKER_FULL_TAG: "{{{{SERVICE | upper}}_FULL_TAG}}"
+
   - name: b-micro-x
+    cache: true
     service: "{{SERVICE}}"
-    context_envs:
-      - context: "{{CONTEXT}}"
-        with_env:
-          - "{{CONTEXT}}"
-    context_steps:
-      - context: "{{CONTEXT}}"
-        steps:
-          - type: builtin
-            name: buildDockerImage
-      - context: "local-k8s|{{NS_K8S_CONTEXTS}}"
-        steps:
-          - type: builtin
-            name: pushDockerImage
+    dir: "{{MICRO_X_DIR}}"
+    depends_on:
+      - name: build-generic-go
+        with_vars:
+          FULL_TAG: "{{{{SERVICE | upper}}_FULL_TAG}}"
+          DOCKERFILE: "./{{MICRO_X_DIR}}/Dockerfile"
 
   - name: b-micro-a
-    service: micro-a
+    cache: true
+    service: microa
     dir: "{{MICRO_A_DIR}}"
     depends_on:
-      - name: b-micro-x
+      - name: build-generic-go
         with_vars:
-          FULL_TAG: "{{DOCKER_REGISTRY}}/micro-a:latest"
+          FULL_TAG: "{{{{SERVICE | upper}}_FULL_TAG}}"
           DOCKERFILE: "./{{MICRO_A_DIR}}/Dockerfile"
 
   - name: b-health-checker
-    service: health-checker
+    cache: true
+    service: healthchecker
     dir: "{{HEALTH_CHECKER_DIR}}"
     depends_on:
-      - name: b-micro-x
+      - name: build-generic-go
         with_vars:
-          FULL_TAG: "{{DOCKER_REGISTRY}}/health-checker:latest"
+          FULL_TAG: "{{{{SERVICE | upper}}_FULL_TAG}}"
           DOCKERFILE: "./{{HEALTH_CHECKER_DIR}}/Dockerfile"
 
   - name: b-micro-b
-    service: micro-b
+    cache: true
+    service: microb
     dir: "{{MICRO_X_DIR}}"
     depends_on:
-      - name: b-micro-x
+      - name: build-generic-go
         with_vars:
-          FULL_TAG: "{{DOCKER_REGISTRY}}/micro-b:latest"
+          FULL_TAG: "{{{{SERVICE | upper}}_FULL_TAG}}"
           DOCKERFILE: "./{{MICRO_X_DIR}}/Dockerfile"
+
+  - name: build-all
+    parallel: true
+    depends_on:
+      - name: b-micro-a
+      - name: b-micro-b
+      - name: b-health-checker
 
 deploys:
   - name: d-micro-x
@@ -219,7 +239,7 @@ deploys:
           CONTAINER_PORT: "{{MICRO_A_PORT}}"
 
   - name: d-micro-b
-    service: micro-b
+    service: microb
     dir: "{{MICRO_X_DIR}}"
     context_envs:
       - context: "{{CONTEXT}}"
@@ -228,24 +248,20 @@ deploys:
     depends_on:
       - name: d-micro-x
         with_vars:
-          FULL_TAG: "{{DOCKER_REGISTRY}}/micro-b:latest"
+          FULL_TAG: "{{DOCKER_REGISTRY}}/microb:latest"
           CONTAINER_PORT: "{{MICRO_B_PORT}}"
           VALUES_FILE: "values/micro-b-values.yaml"
 
-  - name: all
+  - name: deploy-all
     depends_on:
-      - name: createNamespace
-      - name: applyK8sSecret
-      - name: b-micro-a
-      - name: b-micro-b
-      - name: b-health-checker
       - name: d-micro-a
       - name: d-micro-b
       - name: d-health-checker
 
+
   - name: all-test
     depends_on:
-      - name: all
+      - name: build-all
       - name: postman-health-check
 
 tests:
@@ -271,6 +287,20 @@ tests:
             name: bashScript
             with_vars:
               SCRIPT: script/runPostmanTests.sh
+
+pipelines:
+  - name: install-build-deploy-all
+    depends_on:
+      - name: install-infrastructure-dependencies
+      - name: build-all
+      - name: deploy-all
+
+  - name: build-deploy-all
+    depends_on:
+      - name: build-all
+      - name: deploy-all
+
+
 
 post_utilities:
   - name: delete-namespace
